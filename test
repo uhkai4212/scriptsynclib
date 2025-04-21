@@ -1,0 +1,175 @@
+-- // Script 1: Hosting Script (UI Library Module)
+-- Place this on your raw hosting service and reference the URL
+
+local ExploitUILib = {}
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+-- Create UI Window
+local mainUI = Instance.new("ScreenGui")
+mainUI.Name = "ExploitUI"
+mainUI.ResetOnSpawn = false
+mainUI.Parent = CoreGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = mainUI
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.Text = "Exploit UI Library"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = mainFrame
+
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, 0, 1, -40)
+contentFrame.Position = UDim2.new(0, 0, 0, 40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 6)
+layout.FillDirection = Enum.FillDirection.Vertical
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Top
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = contentFrame
+
+function ExploitUILib:CreateButton(text, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 300, 0, 40)
+    button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 18
+    button.Text = text
+    button.Parent = contentFrame
+
+    button.MouseButton1Click:Connect(callback)
+    return button
+end
+
+function ExploitUILib:CreateLabel(text)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 300, 0, 30)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+    label.Text = text
+    label.Parent = contentFrame
+
+    return label
+end
+
+function ExploitUILib:CreateTextBox(placeholder, callback)
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(0, 300, 0, 35)
+    textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextSize = 16
+    textBox.PlaceholderText = placeholder
+    textBox.ClearTextOnFocus = true
+    textBox.Parent = contentFrame
+
+    textBox.FocusLost:Connect(function(enter)
+        if enter and callback then
+            callback(textBox.Text)
+        end
+    end)
+
+    return textBox
+end
+
+function ExploitUILib:CreateToggle(text, stateChanged)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 40)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    frame.Parent = contentFrame
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 40, 0, 40)
+    toggle.Position = UDim2.new(1, -45, 0, 0)
+    toggle.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+    toggle.Text = ""
+    toggle.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 1, 0)
+    label.Position = UDim2.new(0, 5, 0, 0)
+    label.Text = text
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local toggled = false
+    toggle.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        toggle.BackgroundColor3 = toggled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(100, 0, 0)
+        if stateChanged then
+            stateChanged(toggled)
+        end
+    end)
+
+    return frame
+end
+
+function ExploitUILib:CreateSlider(min, max, default, valueChanged)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 40)
+    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.Parent = contentFrame
+
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(1, -20, 0, 10)
+    bar.Position = UDim2.new(0, 10, 0.5, -5)
+    bar.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    bar.Parent = frame
+
+    local knob = Instance.new("TextButton")
+    knob.Size = UDim2.new(0, 10, 0, 20)
+    knob.Position = UDim2.new((default - min)/(max - min), -5, 0.5, -10)
+    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    knob.Text = ""
+    knob.Parent = frame
+
+    local dragging = false
+
+    knob.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if dragging then
+            local mouseX = game:GetService("UserInputService"):GetMouseLocation().X
+            local guiX = bar.AbsolutePosition.X
+            local width = bar.AbsoluteSize.X
+            local relative = math.clamp(mouseX - guiX, 0, width)
+            local value = min + ((relative / width) * (max - min))
+            knob.Position = UDim2.new(relative / width, -5, 0.5, -10)
+            if valueChanged then
+                valueChanged(math.floor(value))
+            end
+        end
+    end)
+
+    return frame
+end
+
+return ExploitUILib
