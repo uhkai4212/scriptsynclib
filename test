@@ -1,6 +1,3 @@
--- // Script 1: Hosting Script (UI Library Module)
--- Place this on your raw hosting service and reference the URL
-
 local ExploitUILib = {}
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -16,43 +13,169 @@ local PRIMARY_COLOR = Color3.fromRGB(30, 30, 30)
 local SECONDARY_COLOR = Color3.fromRGB(40, 40, 40)
 local ACCENT_COLOR = Color3.fromRGB(70, 130, 240)
 local TEXT_COLOR = Color3.fromRGB(255, 255, 255)
+local TAB_UNSELECTED_COLOR = Color3.fromRGB(45, 45, 45)
 
--- Detect if on mobile device
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Create UI Window
 local mainUI = Instance.new("ScreenGui")
 mainUI.Name = "ExploitUI"
 mainUI.ResetOnSpawn = false
 mainUI.Parent = CoreGui
 
--- Adjusted dimensions for wider and shorter layout
-local windowWidth = 500  -- Increased width
-local windowHeight = 250 -- Reduced height
+local windowWidth = 500
+local windowHeight = 250
+
+local uiContainer = Instance.new("Frame")
+uiContainer.Name = "UIContainer"
+uiContainer.Size = UDim2.new(1, 0, 1, 0)
+uiContainer.BackgroundTransparency = 1
+uiContainer.Parent = mainUI
 
 local shadowFrame = Instance.new("Frame")
+shadowFrame.Name = "Shadow"
 shadowFrame.Size = UDim2.new(0, windowWidth + 10, 0, windowHeight + 10)
 shadowFrame.Position = UDim2.new(0.5, -(windowWidth + 10)/2, 0.5, -(windowHeight + 10)/2)
 shadowFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 shadowFrame.BackgroundTransparency = 0.5
-shadowFrame.Parent = mainUI
+shadowFrame.Parent = uiContainer
 
 local shadowCorner = Instance.new("UICorner")
 shadowCorner.CornerRadius = UDim.new(0, CORNER_RADIUS + 2)
 shadowCorner.Parent = shadowFrame
 
 local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, windowWidth, 0, windowHeight)
 mainFrame.Position = UDim2.new(0.5, -windowWidth/2, 0.5, -windowHeight/2)
 mainFrame.BackgroundColor3 = PRIMARY_COLOR
 mainFrame.BorderSizePixel = 0
-mainFrame.Parent = mainUI
+mainFrame.Parent = uiContainer
 
--- Make the UI draggable
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, CORNER_RADIUS)
+mainCorner.Parent = mainFrame
+
+local glowEffect = Instance.new("ImageLabel")
+glowEffect.Size = UDim2.new(1, 20, 1, 20)
+glowEffect.Position = UDim2.new(0, -10, 0, -10)
+glowEffect.BackgroundTransparency = 1
+glowEffect.Image = "rbxassetid://5028857084"
+glowEffect.ImageColor3 = ACCENT_COLOR
+glowEffect.ImageTransparency = 1 - GLOW_INTENSITY
+glowEffect.ZIndex = -1
+glowEffect.Parent = mainFrame
+
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 35)
+header.BackgroundColor3 = SECONDARY_COLOR
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, CORNER_RADIUS)
+headerCorner.Parent = header
+
+local headerBottomCover = Instance.new("Frame")
+headerBottomCover.Size = UDim2.new(1, 0, 0, CORNER_RADIUS)
+headerBottomCover.Position = UDim2.new(0, 0, 1, -CORNER_RADIUS)
+headerBottomCover.BackgroundColor3 = SECONDARY_COLOR
+headerBottomCover.BorderSizePixel = 0
+headerBottomCover.ZIndex = header.ZIndex
+headerBottomCover.Parent = header
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 40, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Exploit UI"
+title.Font = Enum.Font.GothamBold
+title.TextSize = isMobile and 18 or 16
+title.TextColor3 = TEXT_COLOR
+title.Parent = header
+
+local hideButton = Instance.new("ImageButton")
+hideButton.Size = UDim2.new(0, 24, 0, 24)
+hideButton.Position = UDim2.new(1, -30, 0.5, -12)
+hideButton.BackgroundTransparency = 1
+hideButton.Image = "rbxassetid://3926307971"
+hideButton.ImageRectOffset = Vector2.new(164, 84)
+hideButton.ImageRectSize = Vector2.new(36, 36)
+hideButton.ImageColor3 = TEXT_COLOR
+hideButton.Parent = header
+
+local logoIcon = Instance.new("ImageLabel")
+logoIcon.Size = UDim2.new(0, 24, 0, 24)
+logoIcon.Position = UDim2.new(0, 8, 0.5, -12)
+logoIcon.BackgroundTransparency = 1
+logoIcon.Image = "rbxassetid://3926305904"
+logoIcon.ImageRectOffset = Vector2.new(964, 324)
+logoIcon.ImageRectSize = Vector2.new(36, 36)
+logoIcon.ImageColor3 = ACCENT_COLOR
+logoIcon.Parent = header
+
+local tabContainer = Instance.new("Frame")
+tabContainer.Size = UDim2.new(1, 0, 0, 30)
+tabContainer.Position = UDim2.new(0, 0, 0, 35)
+tabContainer.BackgroundColor3 = SECONDARY_COLOR
+tabContainer.BorderSizePixel = 0
+tabContainer.Parent = mainFrame
+
+local contentBackground = Instance.new("Frame")
+contentBackground.Size = UDim2.new(1, 0, 1, -65)
+contentBackground.Position = UDim2.new(0, 0, 0, 65)
+contentBackground.BackgroundColor3 = PRIMARY_COLOR
+contentBackground.BorderSizePixel = 0
+contentBackground.Parent = mainFrame
+
+local tabScrollFrame = Instance.new("ScrollingFrame")
+tabScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+tabScrollFrame.BackgroundTransparency = 1
+tabScrollFrame.ScrollBarThickness = 0
+tabScrollFrame.ScrollingDirection = Enum.ScrollingDirection.X
+tabScrollFrame.Parent = tabContainer
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+tabLayout.Padding = UDim.new(0, 2)
+tabLayout.Parent = tabScrollFrame
+
+local minimizedButton = Instance.new("ImageButton")
+minimizedButton.Name = "MinimizedButton"
+minimizedButton.Size = UDim2.new(0, 40, 0, 40)
+minimizedButton.Position = UDim2.new(0.9, 0, 0.1, 0)
+minimizedButton.BackgroundColor3 = ACCENT_COLOR
+minimizedButton.Visible = false
+minimizedButton.ZIndex = 10
+minimizedButton.Parent = uiContainer
+
+local minimizedCorner = Instance.new("UICorner")
+minimizedCorner.CornerRadius = UDim.new(1, 0)
+minimizedCorner.Parent = minimizedButton
+
+local minimizedShadow = Instance.new("ImageLabel")
+minimizedShadow.Size = UDim2.new(1, 10, 1, 10)
+minimizedShadow.Position = UDim2.new(0.5, -5, 0.5, -5)
+minimizedShadow.BackgroundTransparency = 1
+minimizedShadow.Image = "rbxassetid://5028857084"
+minimizedShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+minimizedShadow.ImageTransparency = 0.5
+minimizedShadow.ZIndex = 9
+minimizedShadow.Parent = minimizedButton
+
+local minimizedIcon = Instance.new("ImageLabel")
+minimizedIcon.Size = UDim2.new(0, 24, 0, 24)
+minimizedIcon.Position = UDim2.new(0.5, -12, 0.5, -12)
+minimizedIcon.BackgroundTransparency = 1
+minimizedIcon.Image = "rbxassetid://3926307971"
+minimizedIcon.ImageRectOffset = Vector2.new(404, 284)
+minimizedIcon.ImageRectSize = Vector2.new(36, 36)
+minimizedIcon.ImageColor3 = TEXT_COLOR
+minimizedIcon.ZIndex = 11
+minimizedIcon.Parent = minimizedButton
+
 local draggable = false
-local dragInput
-local dragStart
-local startPos
+local dragInput, dragStart, startPos
 
 local function updateDrag(input)
     local delta = input.Position - dragStart
@@ -60,7 +183,7 @@ local function updateDrag(input)
     shadowFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 5, startPos.Y.Scale, startPos.Y.Offset + delta.Y - 5)
 end
 
-mainFrame.InputBegan:Connect(function(input)
+header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         draggable = true
         dragStart = input.Position
@@ -74,7 +197,7 @@ mainFrame.InputBegan:Connect(function(input)
     end
 end)
 
-mainFrame.InputChanged:Connect(function(input)
+header.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
@@ -86,68 +209,98 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, CORNER_RADIUS)
-mainCorner.Parent = mainFrame
+local tabs = {}
+local tabFrames = {}
+local selectedTab = nil
+local previousTab = nil
 
-local glowEffect = Instance.new("ImageLabel")
-glowEffect.Size = UDim2.new(1, 20, 1, 20)
-glowEffect.Position = UDim2.new(0, -10, 0, -10)
-glowEffect.BackgroundTransparency = 1
-glowEffect.Image = "rbxassetid://5028857084" -- Radial gradient image
-glowEffect.ImageColor3 = ACCENT_COLOR
-glowEffect.ImageTransparency = 1 - GLOW_INTENSITY
-glowEffect.ZIndex = -1
-glowEffect.Parent = mainFrame
+local function animateTabChange(newTabContent, direction)
+    local startPos = UDim2.new(direction, 0, 0, 0)
+    local endPos = UDim2.new(0, 0, 0, 0)
+    
+    for _, tab in pairs(tabFrames) do
+        if tab ~= newTabContent then
+            tab.Visible = false
+        end
+    end
+    
+    newTabContent.Position = startPos
+    newTabContent.Visible = true
+    
+    local tween = TweenService:Create(
+        newTabContent,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        {Position = endPos}
+    )
+    tween:Play()
+end
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundColor3 = SECONDARY_COLOR
-title.Text = "Exploit UI Library"
-title.Font = Enum.Font.GothamBold
-title.TextSize = isMobile and 24 or 20 -- Larger text on mobile
-title.TextColor3 = TEXT_COLOR
-title.Parent = mainFrame
+local function toggleUIVisibility()
+    if mainFrame.Visible then
+        local startPos = mainFrame.Position
+        local endPos = UDim2.new(startPos.X.Scale, startPos.X.Offset, 1.5, 0)
+        
+        local tween = TweenService:Create(
+            mainFrame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Position = endPos}
+        )
+        
+        local shadowTween = TweenService:Create(
+            shadowFrame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Position = UDim2.new(endPos.X.Scale, endPos.X.Offset - 5, endPos.Y.Scale, endPos.Y.Offset - 5)}
+        )
+        
+        tween:Play()
+        shadowTween:Play()
+        
+        tween.Completed:Connect(function()
+            mainFrame.Visible = false
+            shadowFrame.Visible = false
+            
+            minimizedButton.Position = UDim2.new(0.9, 0, -0.1, 0)
+            minimizedButton.Visible = true
+            
+            local minimizedTween = TweenService:Create(
+                minimizedButton,
+                TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out),
+                {Position = UDim2.new(0.9, 0, 0.1, 0)}
+            )
+            minimizedTween:Play()
+        end)
+    else
+        minimizedButton.Visible = false
+        mainFrame.Visible = true
+        shadowFrame.Visible = true
+        
+        local currentPos = mainFrame.Position
+        local startPos = UDim2.new(currentPos.X.Scale, currentPos.X.Offset, 1.5, 0)
+        local endPos = UDim2.new(0.5, -windowWidth/2, 0.5, -windowHeight/2)
+        
+        mainFrame.Position = startPos
+        shadowFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset - 5, startPos.Y.Scale, startPos.Y.Offset - 5)
+        
+        local tween = TweenService:Create(
+            mainFrame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+            {Position = endPos}
+        )
+        
+        local shadowTween = TweenService:Create(
+            shadowFrame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+            {Position = UDim2.new(endPos.X.Scale, endPos.X.Offset - 5, endPos.Y.Scale, endPos.Y.Offset - 5)}
+        )
+        
+        tween:Play()
+        shadowTween:Play()
+    end
+end
 
-local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, CORNER_RADIUS)
-titleCorner.Parent = title
+hideButton.MouseButton1Click:Connect(toggleUIVisibility)
+minimizedButton.MouseButton1Click:Connect(toggleUIVisibility)
 
--- Create scrolling frame for content to support more elements in a shorter window
-local scrollingFrame = Instance.new("ScrollingFrame")
-scrollingFrame.Size = UDim2.new(1, -PADDING*2, 1, -50)
-scrollingFrame.Position = UDim2.new(0, PADDING, 0, 45)
-scrollingFrame.BackgroundTransparency = 1
-scrollingFrame.ScrollBarThickness = 4
-scrollingFrame.ScrollBarImageColor3 = ACCENT_COLOR
-scrollingFrame.VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Right
-scrollingFrame.Parent = mainFrame
-
-local contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, -8, 0, 0) -- Auto-height based on contents
-contentFrame.BackgroundTransparency = 1
-contentFrame.Parent = scrollingFrame
-
-local contentPadding = Instance.new("UIPadding")
-contentPadding.PaddingTop = UDim.new(0, PADDING/2)
-contentPadding.PaddingBottom = UDim.new(0, PADDING/2)
-contentPadding.Parent = contentFrame
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 10)
-layout.FillDirection = Enum.FillDirection.Vertical
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.VerticalAlignment = Enum.VerticalAlignment.Top
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = contentFrame
-
--- Update scrolling frame canvas size when content changes
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    contentFrame.Size = UDim2.new(1, -8, 0, layout.AbsoluteContentSize.Y + PADDING)
-    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + PADDING)
-end)
-
--- Helper function to add UI corner to elements
 local function addCorners(instance, radius)
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, radius or CORNER_RADIUS)
@@ -155,7 +308,6 @@ local function addCorners(instance, radius)
     return corner
 end
 
--- Helper function to create hover effect
 local function createHoverEffect(button)
     local originalColor = button.BackgroundColor3
     local hoverColor = Color3.new(
@@ -173,281 +325,276 @@ local function createHoverEffect(button)
     end)
 end
 
-function ExploitUILib:CreateButton(text, callback)
-    local buttonWidth = windowWidth - PADDING*4
-    
-    local buttonContainer = Instance.new("Frame")
-    buttonContainer.Size = UDim2.new(0, buttonWidth, 0, isMobile and 50 or 40) -- Taller buttons on mobile
-    buttonContainer.BackgroundTransparency = 1
-    buttonContainer.Parent = contentFrame
-    
-    local buttonShadow = Instance.new("Frame")
-    buttonShadow.Size = UDim2.new(1, 4, 1, 4)
-    buttonShadow.Position = UDim2.new(0, -2, 0, 2)
-    buttonShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    buttonShadow.BackgroundTransparency = 0.7
-    buttonShadow.ZIndex = 0
-    buttonShadow.Parent = buttonContainer
-    addCorners(buttonShadow)
-
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundColor3 = SECONDARY_COLOR
-    button.TextColor3 = TEXT_COLOR
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = isMobile and 22 or 18 -- Larger text on mobile
-    button.Text = text
-    button.ZIndex = 2
-    button.Parent = buttonContainer
-    addCorners(button)
-    
-    createHoverEffect(button)
-
-    button.MouseButton1Click:Connect(callback)
-    return buttonContainer
-end
-
-function ExploitUILib:CreateLabel(text)
-    local buttonWidth = windowWidth - PADDING*4
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, buttonWidth, 0, 30)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = TEXT_COLOR
-    label.Font = Enum.Font.Gotham
-    label.TextSize = isMobile and 20 or 16 -- Larger text on mobile
-    label.Text = text
-    label.Parent = contentFrame
-
-    return label
-end
-
-function ExploitUILib:CreateTextBox(placeholder, callback)
-    local buttonWidth = windowWidth - PADDING*4
-    
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(0, buttonWidth, 0, isMobile and 45 or 35) -- Taller on mobile
-    container.BackgroundTransparency = 1
-    container.Parent = contentFrame
-    
-    local boxShadow = Instance.new("Frame")
-    boxShadow.Size = UDim2.new(1, 4, 1, 4)
-    boxShadow.Position = UDim2.new(0, -2, 0, 2)
-    boxShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    boxShadow.BackgroundTransparency = 0.7
-    boxShadow.ZIndex = 0
-    boxShadow.Parent = container
-    addCorners(boxShadow)
-
-    local textBox = Instance.new("TextBox")
-    textBox.Size = UDim2.new(1, 0, 1, 0)
-    textBox.BackgroundColor3 = SECONDARY_COLOR
-    textBox.TextColor3 = TEXT_COLOR
-    textBox.Font = Enum.Font.Gotham
-    textBox.TextSize = isMobile and 20 or 16 -- Larger text on mobile
-    textBox.PlaceholderText = placeholder
-    textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-    textBox.Text = ""
-    textBox.ClearTextOnFocus = true
-    textBox.Parent = container
-    
-    -- Add padding to text
-    local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 10)
-    padding.PaddingRight = UDim.new(0, 10)
-    padding.Parent = textBox
-    
-    addCorners(textBox)
-
-    textBox.FocusLost:Connect(function(enter)
-        if enter and callback then
-            callback(textBox.Text)
-        end
-    end)
-
-    return container
-end
-
-function ExploitUILib:CreateToggle(text, stateChanged)
-    local buttonWidth = windowWidth - PADDING*4
-    
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, buttonWidth, 0, isMobile and 50 or 40) -- Taller on mobile
-    frame.BackgroundColor3 = SECONDARY_COLOR
-    frame.Parent = contentFrame
-    addCorners(frame)
-
-    local toggleSize = isMobile and 30 or 26
-    local knobSize = isMobile and 24 or 20
-    
-    local toggleContainer = Instance.new("Frame")
-    toggleContainer.Size = UDim2.new(0, toggleSize + 20, 0, toggleSize)
-    toggleContainer.Position = UDim2.new(1, -(toggleSize + 30), 0.5, -toggleSize/2)
-    toggleContainer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    toggleContainer.Parent = frame
-    addCorners(toggleContainer, toggleSize/2)
-
-    local toggleButton = Instance.new("Frame")
-    toggleButton.Size = UDim2.new(0, knobSize, 0, knobSize)
-    toggleButton.Position = UDim2.new(0, 3, 0.5, -knobSize/2)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-    toggleButton.Parent = toggleContainer
-    addCorners(toggleButton, knobSize/2)
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -(toggleSize + 40), 1, 0)
-    label.Position = UDim2.new(0, 15, 0, 0)
-    label.Text = text
-    label.BackgroundTransparency = 1
-    label.TextColor3 = TEXT_COLOR
-    label.Font = Enum.Font.Gotham
-    label.TextSize = isMobile and 20 or 16 -- Larger text on mobile
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-
-    local hitbox = Instance.new("TextButton")
-    hitbox.Size = UDim2.new(1, 0, 1, 0)
-    hitbox.BackgroundTransparency = 1
-    hitbox.Text = ""
-    hitbox.Parent = frame
-
-    local toggled = false
-    local function updateToggle()
-        local targetPosition = toggled and UDim2.new(1, -(knobSize + 3), 0.5, -knobSize/2) or UDim2.new(0, 3, 0.5, -knobSize/2)
-        local targetColor = toggled and ACCENT_COLOR or Color3.fromRGB(60, 60, 60)
-        local buttonColor = toggled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
+function ExploitUILib:CreateTab(name, iconId, iconOffset)
+    if not tabs[name] then
+        local tabButton = Instance.new("TextButton")
+        tabButton.Size = UDim2.new(0, 100, 1, -4)
+        tabButton.BackgroundColor3 = TAB_UNSELECTED_COLOR
+        tabButton.Font = Enum.Font.Gotham
+        tabButton.TextSize = isMobile and 16 or 14
+        tabButton.TextColor3 = TEXT_COLOR
+        tabButton.Text = ""
+        tabButton.Parent = tabScrollFrame
+        addCorners(tabButton, 4)
         
-        TweenService:Create(toggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
-        TweenService:Create(toggleButton, TweenInfo.new(0.2), {Position = targetPosition, BackgroundColor3 = buttonColor}):Play()
-    end
-
-    hitbox.MouseButton1Click:Connect(function()
-        toggled = not toggled
-        updateToggle()
-        if stateChanged then
-            stateChanged(toggled)
-        end
-    end)
-
-    return frame
-end
-
-function ExploitUILib:CreateSlider(min, max, default, valueChanged)
-    local buttonWidth = windowWidth - PADDING*4
-    
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, buttonWidth, 0, isMobile and 60 or 50) -- Taller on mobile
-    frame.BackgroundColor3 = SECONDARY_COLOR
-    frame.Parent = contentFrame
-    addCorners(frame)
-
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(0, 50, 0, 20)
-    valueLabel.Position = UDim2.new(1, -60, 0, 5)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.TextColor3 = TEXT_COLOR
-    valueLabel.Font = Enum.Font.GothamBold
-    valueLabel.TextSize = isMobile and 18 or 14
-    valueLabel.Text = tostring(default)
-    valueLabel.Parent = frame
-
-    local barContainer = Instance.new("Frame")
-    barContainer.Size = UDim2.new(1, -40, 0, isMobile and 14 or 10)
-    barContainer.Position = UDim2.new(0, 20, isMobile and 0.7 or 0.7, 0)
-    barContainer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    barContainer.BackgroundTransparency = 0.3
-    barContainer.Parent = frame
-    addCorners(barContainer, isMobile and 7 or 5)
-
-    local filledBar = Instance.new("Frame")
-    filledBar.Size = UDim2.new((default - min)/(max - min), 0, 1, 0)
-    filledBar.BackgroundColor3 = ACCENT_COLOR
-    filledBar.Parent = barContainer
-    addCorners(filledBar, isMobile and 7 or 5)
-    
-    local knobSize = isMobile and 24 or 16
-    local shadowSize = knobSize + 4
-    
-    local knobShadow = Instance.new("Frame")
-    knobShadow.Size = UDim2.new(0, shadowSize, 0, shadowSize)
-    knobShadow.Position = UDim2.new((default - min)/(max - min), -shadowSize/2, 0.5, -shadowSize/2)
-    knobShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    knobShadow.BackgroundTransparency = 0.7
-    knobShadow.ZIndex = 1
-    knobShadow.Parent = barContainer
-    addCorners(knobShadow, shadowSize/2)
-
-    local knob = Instance.new("TextButton")
-    knob.Size = UDim2.new(0, knobSize, 0, knobSize)
-    knob.Position = UDim2.new((default - min)/(max - min), -knobSize/2, 0.5, -knobSize/2)
-    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    knob.Text = ""
-    knob.ZIndex = 2
-    knob.Parent = barContainer
-    addCorners(knob, knobSize/2)
-
-    -- Make the entire bar clickable for better mobile usage
-    local barButton = Instance.new("TextButton")
-    barButton.Size = UDim2.new(1, 0, 1, 0)
-    barButton.BackgroundTransparency = 1
-    barButton.Text = ""
-    barButton.ZIndex = 3
-    barButton.Parent = barContainer
-
-    local dragging = false
-    local currentValue = default
-
-    local function updateSlider(relativeX)
-        local percentage = math.clamp(relativeX, 0, 1)
-        local value = min + ((percentage) * (max - min))
-        currentValue = math.floor(value)
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 16, 0, 16)
+        icon.Position = UDim2.new(0, 8, 0.5, -8)
+        icon.BackgroundTransparency = 1
+        icon.Image = iconId or "rbxassetid://3926305904"
+        icon.ImageRectOffset = iconOffset or Vector2.new(724, 724)
+        icon.ImageRectSize = Vector2.new(36, 36)
+        icon.ImageColor3 = TEXT_COLOR
+        icon.Parent = tabButton
         
-        knob.Position = UDim2.new(percentage, -knobSize/2, 0.5, -knobSize/2)
-        knobShadow.Position = UDim2.new(percentage, -shadowSize/2, 0.5, -shadowSize/2)
-        filledBar.Size = UDim2.new(percentage, 0, 1, 0)
-        valueLabel.Text = tostring(currentValue)
+        local tabText = Instance.new("TextLabel")
+        tabText.Size = UDim2.new(1, -32, 1, 0)
+        tabText.Position = UDim2.new(0, 30, 0, 0)
+        tabText.BackgroundTransparency = 1
+        tabText.Font = Enum.Font.Gotham
+        tabText.TextSize = isMobile and 16 or 14
+        tabText.TextColor3 = TEXT_COLOR
+        tabText.Text = name
+        tabText.TextXAlignment = Enum.TextXAlignment.Left
+        tabText.Parent = tabButton
         
-        if valueChanged then
-            valueChanged(currentValue)
-        end
-    end
-
-    -- Handle click on the bar (mobile-friendly)
-    barButton.MouseButton1Down:Connect(function(x, y)
-        local barWidth = barContainer.AbsoluteSize.X
-        local relativeX = (x - barContainer.AbsolutePosition.X) / barWidth
-        updateSlider(relativeX)
-        dragging = true
-    end)
-
-    knob.MouseButton1Down:Connect(function()
-        dragging = true
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    RunService.RenderStepped:Connect(function()
-        if dragging then
-            local inputType = isMobile and UserInputService:GetTouchPosition() or UserInputService:GetMouseLocation()
-            if inputType then
-                local mouseX = inputType.X
-                local barX = barContainer.AbsolutePosition.X
-                local barWidth = barContainer.AbsoluteSize.X
-                local relativeX = math.clamp((mouseX - barX) / barWidth, 0, 1)
-                updateSlider(relativeX)
+        local contentFrame = Instance.new("ScrollingFrame")
+        contentFrame.Size = UDim2.new(1, -PADDING*2, 1, -PADDING*2)
+        contentFrame.Position = UDim2.new(0, PADDING, 0, PADDING)
+        contentFrame.BackgroundTransparency = 1
+        contentFrame.BorderSizePixel = 0
+        contentFrame.ScrollBarThickness = 4
+        contentFrame.ScrollBarImageColor3 = ACCENT_COLOR
+        contentFrame.VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Right
+        contentFrame.Visible = false
+        contentFrame.Parent = contentBackground
+        
+        local frameContent = Instance.new("Frame")
+        frameContent.Size = UDim2.new(1, -8, 0, 0)
+        frameContent.BackgroundTransparency = 1
+        frameContent.Parent = contentFrame
+        
+        local contentPadding = Instance.new("UIPadding")
+        contentPadding.PaddingTop = UDim.new(0, PADDING/2)
+        contentPadding.PaddingBottom = UDim.new(0, PADDING/2)
+        contentPadding.Parent = frameContent
+        
+        local layout = Instance.new("UIListLayout")
+        layout.Padding = UDim.new(0, 8)
+        layout.FillDirection = Enum.FillDirection.Vertical
+        layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        layout.VerticalAlignment = Enum.VerticalAlignment.Top
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Parent = frameContent
+        
+        layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            frameContent.Size = UDim2.new(1, -8, 0, layout.AbsoluteContentSize.Y + PADDING)
+            contentFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + PADDING)
+        end)
+        
+        tabs[name] = {
+            button = tabButton,
+            frame = contentFrame,
+            content = frameContent
+        }
+        tabFrames[contentFrame] = true
+        
+        tabButton.MouseButton1Click:Connect(function()
+            if selectedTab ~= name then
+                local direction = 1
+                
+                if selectedTab then
+                    tabs[selectedTab].button.BackgroundColor3 = TAB_UNSELECTED_COLOR
+                    
+                    local tabNames = {}
+                    for tabName, _ in pairs(tabs) do
+                        table.insert(tabNames, tabName) 
+                    end
+                    
+                    table.sort(tabNames)
+                    
+                    local prevIndex, currIndex = 0, 0
+                    for i, tabName in ipairs(tabNames) do
+                        if tabName == selectedTab then prevIndex = i end
+                        if tabName == name then currIndex = i end
+                    end
+                    
+                    if currIndex < prevIndex then
+                        direction = -1
+                    end
+                    
+                    previousTab = selectedTab
+                end
+                
+                selectedTab = name
+                tabButton.BackgroundColor3 = ACCENT_COLOR
+                
+                animateTabChange(contentFrame, direction)
             end
+        end)
+        
+        if not selectedTab then
+            selectedTab = name
+            tabButton.BackgroundColor3 = ACCENT_COLOR
+            contentFrame.Visible = true
         end
-    end)
-
-    return frame
+        
+        tabScrollFrame.CanvasSize = UDim2.new(0, tabLayout.AbsoluteContentSize.X, 0, 0)
+        
+        local tabFunctions = {}
+        
+        function tabFunctions:CreateButton(text, callback)
+            local buttonContainer = Instance.new("Frame")
+            buttonContainer.Size = UDim2.new(1, 0, 0, isMobile and 45 or 35)
+            buttonContainer.BackgroundTransparency = 1
+            buttonContainer.Parent = frameContent
+            
+            local buttonShadow = Instance.new("Frame")
+            buttonShadow.Size = UDim2.new(1, 4, 1, 4)
+            buttonShadow.Position = UDim2.new(0, -2, 0, 2)
+            buttonShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            buttonShadow.BackgroundTransparency = 0.7
+            buttonShadow.ZIndex = 0
+            buttonShadow.Parent = buttonContainer
+            addCorners(buttonShadow)
+        
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(1, 0, 1, 0)
+            button.BackgroundColor3 = SECONDARY_COLOR
+            button.TextColor3 = TEXT_COLOR
+            button.Font = Enum.Font.GothamBold
+            button.TextSize = isMobile and 18 or 16
+            button.Text = text
+            button.ZIndex = 2
+            button.Parent = buttonContainer
+            addCorners(button)
+            
+            createHoverEffect(button)
+        
+            button.MouseButton1Click:Connect(callback)
+            return buttonContainer
+        end
+        
+        function tabFunctions:CreateLabel(text)
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, 0, 0, 25)
+            label.BackgroundTransparency = 1
+            label.TextColor3 = TEXT_COLOR
+            label.Font = Enum.Font.Gotham
+            label.TextSize = isMobile and 16 or 14
+            label.Text = text
+            label.Parent = frameContent
+        
+            return label
+        end
+        
+        function tabFunctions:CreateTextBox(placeholder, callback)
+            local container = Instance.new("Frame")
+            container.Size = UDim2.new(1, 0, 0, isMobile and 40 or 32)
+            container.BackgroundTransparency = 1
+            container.Parent = frameContent
+            
+            local boxShadow = Instance.new("Frame")
+            boxShadow.Size = UDim2.new(1, 4, 1, 4)
+            boxShadow.Position = UDim2.new(0, -2, 0, 2)
+            boxShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            boxShadow.BackgroundTransparency = 0.7
+            boxShadow.ZIndex = 0
+            boxShadow.Parent = container
+            addCorners(boxShadow)
+        
+            local textBox = Instance.new("TextBox")
+            textBox.Size = UDim2.new(1, 0, 1, 0)
+            textBox.BackgroundColor3 = SECONDARY_COLOR
+            textBox.TextColor3 = TEXT_COLOR
+            textBox.Font = Enum.Font.Gotham
+            textBox.TextSize = isMobile and 16 or 14
+            textBox.PlaceholderText = placeholder
+            textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+            textBox.Text = ""
+            textBox.ClearTextOnFocus = true
+            textBox.Parent = container
+            
+            local padding = Instance.new("UIPadding")
+            padding.PaddingLeft = UDim.new(0, 10)
+            padding.PaddingRight = UDim.new(0, 10)
+            padding.Parent = textBox
+            
+            addCorners(textBox)
+        
+            textBox.FocusLost:Connect(function(enter)
+                if enter and callback then
+                    callback(textBox.Text)
+                end
+            end)
+        
+            return container
+        end
+        
+        function tabFunctions:CreateToggle(text, stateChanged)
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 0, isMobile and 40 or 32)
+            frame.BackgroundColor3 = SECONDARY_COLOR
+            frame.Parent = frameContent
+            addCorners(frame)
+        
+            local toggleSize = isMobile and 24 or 20
+            local knobSize = isMobile and 18 or 16
+            
+            local toggleContainer = Instance.new("Frame")
+            toggleContainer.Size = UDim2.new(0, toggleSize + 20, 0, toggleSize)
+            toggleContainer.Position = UDim2.new(1, -(toggleSize + 30), 0.5, -toggleSize/2)
+            toggleContainer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            toggleContainer.Parent = frame
+            addCorners(toggleContainer, toggleSize/2)
+        
+            local toggleButton = Instance.new("Frame")
+            toggleButton.Size = UDim2.new(0, knobSize, 0, knobSize)
+            toggleButton.Position = UDim2.new(0, 3, 0.5, -knobSize/2)
+            toggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+            toggleButton.Parent = toggleContainer
+            addCorners(toggleButton, knobSize/2)
+        
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, -(toggleSize + 40), 1, 0)
+            label.Position = UDim2.new(0, 12, 0, 0)
+            label.Text = text
+            label.BackgroundTransparency = 1
+            label.TextColor3 = TEXT_COLOR
+            label.Font = Enum.Font.Gotham
+            label.TextSize = isMobile and 16 or 14
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.Parent = frame
+        
+            local hitbox = Instance.new("TextButton")
+            hitbox.Size = UDim2.new(1, 0, 1, 0)
+            hitbox.BackgroundTransparency = 1
+            hitbox.Text = ""
+            hitbox.Parent = frame
+        
+            local toggled = false
+            local function updateToggle()
+                local targetPosition = toggled and UDim2.new(1, -(knobSize + 3), 0.5, -knobSize/2) or UDim2.new(0, 3, 0.5, -knobSize/2)
+                local targetColor = toggled and ACCENT_COLOR or Color3.fromRGB(60, 60, 60)
+                local buttonColor = toggled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
+                
+                TweenService:Create(toggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+                TweenService:Create(toggleButton, TweenInfo.new(0.2), {Position = targetPosition, BackgroundColor3 = buttonColor}):Play()
+            end
+        
+            hitbox.MouseButton1Click:Connect(function()
+                toggled = not toggled
+                updateToggle()
+                if stateChanged then
+                    stateChanged(toggled)
+                end
+            end)
+        
+            return frame
+        end
+        
+        return tabFunctions
+    end
 end
-
--- Expose whether we're on mobile
-ExploitUILib.IsMobile = isMobile
 
 return ExploitUILib
