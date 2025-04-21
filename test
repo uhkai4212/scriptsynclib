@@ -4,6 +4,18 @@
 local ExploitUILib = {}
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- UI Constants
+local CORNER_RADIUS = 8
+local PADDING = 10
+local SHADOW_ELEVATION = 6
+local GLOW_INTENSITY = 0.4
+local PRIMARY_COLOR = Color3.fromRGB(30, 30, 30)
+local SECONDARY_COLOR = Color3.fromRGB(40, 40, 40)
+local ACCENT_COLOR = Color3.fromRGB(70, 130, 240)
+local TEXT_COLOR = Color3.fromRGB(255, 255, 255)
 
 -- Create UI Window
 local mainUI = Instance.new("ScreenGui")
@@ -11,55 +23,133 @@ mainUI.Name = "ExploitUI"
 mainUI.ResetOnSpawn = false
 mainUI.Parent = CoreGui
 
+local shadowFrame = Instance.new("Frame")
+shadowFrame.Size = UDim2.new(0, 410, 0, 310)
+shadowFrame.Position = UDim2.new(0.5, -205, 0.5, -155)
+shadowFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+shadowFrame.BackgroundTransparency = 0.5
+shadowFrame.Parent = mainUI
+
+local shadowCorner = Instance.new("UICorner")
+shadowCorner.CornerRadius = UDim.new(0, CORNER_RADIUS + 2)
+shadowCorner.Parent = shadowFrame
+
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 400, 0, 300)
 mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundColor3 = PRIMARY_COLOR
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = mainUI
 
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, CORNER_RADIUS)
+mainCorner.Parent = mainFrame
+
+local glowEffect = Instance.new("ImageLabel")
+glowEffect.Size = UDim2.new(1, 20, 1, 20)
+glowEffect.Position = UDim2.new(0, -10, 0, -10)
+glowEffect.BackgroundTransparency = 1
+glowEffect.Image = "rbxassetid://5028857084" -- Radial gradient image
+glowEffect.ImageColor3 = ACCENT_COLOR
+glowEffect.ImageTransparency = 1 - GLOW_INTENSITY
+glowEffect.ZIndex = -1
+glowEffect.Parent = mainFrame
+
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.BackgroundColor3 = SECONDARY_COLOR
 title.Text = "Exploit UI Library"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
-title.TextColor3 = Color3.new(1,1,1)
+title.TextColor3 = TEXT_COLOR
 title.Parent = mainFrame
 
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, CORNER_RADIUS)
+titleCorner.Parent = title
+
 local contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, 0, 1, -40)
-contentFrame.Position = UDim2.new(0, 0, 0, 40)
+contentFrame.Size = UDim2.new(1, -PADDING*2, 1, -50)
+contentFrame.Position = UDim2.new(0, PADDING, 0, 45)
 contentFrame.BackgroundTransparency = 1
 contentFrame.Parent = mainFrame
 
+local contentPadding = Instance.new("UIPadding")
+contentPadding.PaddingTop = UDim.new(0, PADDING/2)
+contentPadding.PaddingBottom = UDim.new(0, PADDING/2)
+contentPadding.Parent = contentFrame
+
 local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 6)
+layout.Padding = UDim.new(0, 10)
 layout.FillDirection = Enum.FillDirection.Vertical
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 layout.VerticalAlignment = Enum.VerticalAlignment.Top
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Parent = contentFrame
 
+-- Helper function to add UI corner to elements
+local function addCorners(instance, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or CORNER_RADIUS)
+    corner.Parent = instance
+    return corner
+end
+
+-- Helper function to create hover effect
+local function createHoverEffect(button)
+    local originalColor = button.BackgroundColor3
+    local hoverColor = Color3.new(
+        math.min(originalColor.R + 0.1, 1),
+        math.min(originalColor.G + 0.1, 1),
+        math.min(originalColor.B + 0.1, 1)
+    )
+    
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor}):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = originalColor}):Play()
+    end)
+end
+
 function ExploitUILib:CreateButton(text, callback)
+    local buttonContainer = Instance.new("Frame")
+    buttonContainer.Size = UDim2.new(0, 300, 0, 40)
+    buttonContainer.BackgroundTransparency = 1
+    buttonContainer.Parent = contentFrame
+    
+    local buttonShadow = Instance.new("Frame")
+    buttonShadow.Size = UDim2.new(1, 4, 1, 4)
+    buttonShadow.Position = UDim2.new(0, -2, 0, 2)
+    buttonShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    buttonShadow.BackgroundTransparency = 0.7
+    buttonShadow.ZIndex = 0
+    buttonShadow.Parent = buttonContainer
+    addCorners(buttonShadow)
+
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 300, 0, 40)
-    button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.BackgroundColor3 = SECONDARY_COLOR
+    button.TextColor3 = TEXT_COLOR
     button.Font = Enum.Font.GothamBold
     button.TextSize = 18
     button.Text = text
-    button.Parent = contentFrame
+    button.ZIndex = 2
+    button.Parent = buttonContainer
+    addCorners(button)
+    
+    createHoverEffect(button)
 
     button.MouseButton1Click:Connect(callback)
-    return button
+    return buttonContainer
 end
 
 function ExploitUILib:CreateLabel(text)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 300, 0, 30)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextColor3 = TEXT_COLOR
     label.Font = Enum.Font.Gotham
     label.TextSize = 16
     label.Text = text
@@ -69,15 +159,39 @@ function ExploitUILib:CreateLabel(text)
 end
 
 function ExploitUILib:CreateTextBox(placeholder, callback)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(0, 300, 0, 35)
+    container.BackgroundTransparency = 1
+    container.Parent = contentFrame
+    
+    local boxShadow = Instance.new("Frame")
+    boxShadow.Size = UDim2.new(1, 4, 1, 4)
+    boxShadow.Position = UDim2.new(0, -2, 0, 2)
+    boxShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    boxShadow.BackgroundTransparency = 0.7
+    boxShadow.ZIndex = 0
+    boxShadow.Parent = container
+    addCorners(boxShadow)
+
     local textBox = Instance.new("TextBox")
-    textBox.Size = UDim2.new(0, 300, 0, 35)
-    textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textBox.Size = UDim2.new(1, 0, 1, 0)
+    textBox.BackgroundColor3 = SECONDARY_COLOR
+    textBox.TextColor3 = TEXT_COLOR
     textBox.Font = Enum.Font.Gotham
     textBox.TextSize = 16
     textBox.PlaceholderText = placeholder
+    textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    textBox.Text = ""
     textBox.ClearTextOnFocus = true
-    textBox.Parent = contentFrame
+    textBox.Parent = container
+    
+    -- Add padding to text
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = textBox
+    
+    addCorners(textBox)
 
     textBox.FocusLost:Connect(function(enter)
         if enter and callback then
@@ -85,37 +199,60 @@ function ExploitUILib:CreateTextBox(placeholder, callback)
         end
     end)
 
-    return textBox
+    return container
 end
 
 function ExploitUILib:CreateToggle(text, stateChanged)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 300, 0, 40)
-    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    frame.BackgroundColor3 = SECONDARY_COLOR
     frame.Parent = contentFrame
+    addCorners(frame)
 
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 40, 0, 40)
-    toggle.Position = UDim2.new(1, -45, 0, 0)
-    toggle.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-    toggle.Text = ""
-    toggle.Parent = frame
+    local toggleContainer = Instance.new("Frame")
+    toggleContainer.Size = UDim2.new(0, 46, 0, 26)
+    toggleContainer.Position = UDim2.new(1, -56, 0.5, -13)
+    toggleContainer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    toggleContainer.Parent = frame
+    addCorners(toggleContainer, 13)
+
+    local toggleButton = Instance.new("Frame")
+    toggleButton.Size = UDim2.new(0, 20, 0, 20)
+    toggleButton.Position = UDim2.new(0, 3, 0.5, -10)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    toggleButton.Parent = toggleContainer
+    addCorners(toggleButton, 10)
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -50, 1, 0)
-    label.Position = UDim2.new(0, 5, 0, 0)
+    label.Size = UDim2.new(1, -70, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
     label.Text = text
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextColor3 = TEXT_COLOR
     label.Font = Enum.Font.Gotham
     label.TextSize = 16
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
+    local hitbox = Instance.new("TextButton")
+    hitbox.Size = UDim2.new(1, 0, 1, 0)
+    hitbox.BackgroundTransparency = 1
+    hitbox.Text = ""
+    hitbox.Parent = frame
+
     local toggled = false
-    toggle.MouseButton1Click:Connect(function()
+    local function updateToggle()
+        local targetPosition = toggled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+        local targetColor = toggled and ACCENT_COLOR or Color3.fromRGB(60, 60, 60)
+        local buttonColor = toggled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
+        
+        TweenService:Create(toggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {Position = targetPosition, BackgroundColor3 = buttonColor}):Play()
+    end
+
+    hitbox.MouseButton1Click:Connect(function()
         toggled = not toggled
-        toggle.BackgroundColor3 = toggled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(100, 0, 0)
+        updateToggle()
         if stateChanged then
             stateChanged(toggled)
         end
@@ -126,46 +263,88 @@ end
 
 function ExploitUILib:CreateSlider(min, max, default, valueChanged)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 40)
-    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.Size = UDim2.new(0, 300, 0, 50)
+    frame.BackgroundColor3 = SECONDARY_COLOR
     frame.Parent = contentFrame
+    addCorners(frame)
 
-    local bar = Instance.new("Frame")
-    bar.Size = UDim2.new(1, -20, 0, 10)
-    bar.Position = UDim2.new(0, 10, 0.5, -5)
-    bar.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    bar.Parent = frame
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Size = UDim2.new(0, 40, 0, 20)
+    valueLabel.Position = UDim2.new(1, -50, 0, 5)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.TextColor3 = TEXT_COLOR
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextSize = 14
+    valueLabel.Text = tostring(default)
+    valueLabel.Parent = frame
+
+    local barContainer = Instance.new("Frame")
+    barContainer.Size = UDim2.new(1, -30, 0, 10)
+    barContainer.Position = UDim2.new(0, 15, 0.7, 0)
+    barContainer.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    barContainer.BackgroundTransparency = 0.3
+    barContainer.Parent = frame
+    addCorners(barContainer, 5)
+
+    local filledBar = Instance.new("Frame")
+    filledBar.Size = UDim2.new((default - min)/(max - min), 0, 1, 0)
+    filledBar.BackgroundColor3 = ACCENT_COLOR
+    filledBar.Parent = barContainer
+    addCorners(filledBar, 5)
+    
+    local knobShadow = Instance.new("Frame")
+    knobShadow.Size = UDim2.new(0, 20, 0, 20)
+    knobShadow.Position = UDim2.new((default - min)/(max - min), -10, 0.5, -10)
+    knobShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    knobShadow.BackgroundTransparency = 0.7
+    knobShadow.ZIndex = 1
+    knobShadow.Parent = barContainer
+    addCorners(knobShadow, 10)
 
     local knob = Instance.new("TextButton")
-    knob.Size = UDim2.new(0, 10, 0, 20)
-    knob.Position = UDim2.new((default - min)/(max - min), -5, 0.5, -10)
+    knob.Size = UDim2.new(0, 16, 0, 16)
+    knob.Position = UDim2.new((default - min)/(max - min), -8, 0.5, -8)
     knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     knob.Text = ""
-    knob.Parent = frame
+    knob.ZIndex = 2
+    knob.Parent = barContainer
+    addCorners(knob, 8)
 
     local dragging = false
+    local currentValue = default
+
+    local function updateSlider(relativeX)
+        local percentage = math.clamp(relativeX, 0, 1)
+        local value = min + ((percentage) * (max - min))
+        currentValue = math.floor(value)
+        
+        knob.Position = UDim2.new(percentage, -8, 0.5, -8)
+        knobShadow.Position = UDim2.new(percentage, -10, 0.5, -10)
+        filledBar.Size = UDim2.new(percentage, 0, 1, 0)
+        valueLabel.Text = tostring(currentValue)
+        
+        if valueChanged then
+            valueChanged(currentValue)
+        end
+    end
 
     knob.MouseButton1Down:Connect(function()
         dragging = true
     end)
 
-    game:GetService("UserInputService").InputEnded:Connect(function(input)
+    UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
 
-    game:GetService("RunService").RenderStepped:Connect(function()
+    RunService.RenderStepped:Connect(function()
         if dragging then
-            local mouseX = game:GetService("UserInputService"):GetMouseLocation().X
-            local guiX = bar.AbsolutePosition.X
-            local width = bar.AbsoluteSize.X
-            local relative = math.clamp(mouseX - guiX, 0, width)
-            local value = min + ((relative / width) * (max - min))
-            knob.Position = UDim2.new(relative / width, -5, 0.5, -10)
-            if valueChanged then
-                valueChanged(math.floor(value))
-            end
+            local mouseX = UserInputService:GetMouseLocation().X
+            local barX = barContainer.AbsolutePosition.X
+            local barWidth = barContainer.AbsoluteSize.X
+            local relativeX = math.clamp((mouseX - barX) / barWidth, 0, 1)
+            updateSlider(relativeX)
         end
     end)
 
